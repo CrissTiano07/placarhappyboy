@@ -3,352 +3,260 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Placar do Ribeiro — Single File</title>
-
-  <!-- Tailwind CDN (play) for quick styling -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Chart.js for charts -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- html2canvas for mini-card capture -->
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
-  <!-- FileSaver (UMD) -->
-  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
-
+  <title>Placar do Happy Boy — Single File</title>
   <style>
-    /* small visual tweaks */
-    body { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
-    .card-title { font-size: 1.02rem; font-weight: 700; }
-    .muted { color: #6b7280; } /* tailwind gray-500 */
+    :root{
+      --bg:#0b1220; /* dark blue/gray */
+      --card:#0f1724;
+      --muted:#9ca3af;
+      --accent:#6ee7b7;
+      --glass: rgba(255,255,255,0.03);
+    }
+    html,body{height:100%;}
+    body{margin:0;background:var(--bg);color:#e6eef8;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;overflow:hidden}
+    .wrap{height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+    .panel{width:980px;max-width:98vw;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:0 6px 30px rgba(2,6,23,0.6);padding:22px;display:grid;grid-template-columns:1fr 360px;gap:18px}
+    @media(max-width:900px){.panel{grid-template-columns:1fr;gap:12px;padding:16px}}
+
+    /* Left column */
+    .hero{padding:18px;border-radius:10px;background:var(--card);display:flex;flex-direction:column;gap:12px}
+    .title{font-weight:700;font-size:18px;line-height:1.1}
+    .counter{font-size:20px;font-weight:600;color:#fff}
+    .timebig{font-size:28px;font-weight:800;color:var(--accent);letter-spacing:0.6px}
+    .sub{color:var(--muted);font-size:13px}
+
+    .controls{display:flex;gap:10px;align-items:center}
+    .btn{background:var(--glass);border:1px solid rgba(255,255,255,0.04);padding:10px 12px;border-radius:8px;color:#e6eef8;cursor:pointer}
+    .btn.primary{background:linear-gradient(90deg,#0ea5a3,#7c3aed);color:white;font-weight:700;border:none}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04)}
+
+    /* Timeline */
+    .timeline-wrap{padding:12px;border-radius:10px;background:rgba(255,255,255,0.01);display:flex;flex-direction:column;gap:10px}
+    .timeline-canvas{width:100%;height:140px}
+    .legend{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}
+
+    /* right column */
+    .side{display:flex;flex-direction:column;gap:12px}
+    .mini{padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03)}
+    .mini h4{margin:0;font-size:13px}
+    .mini p{margin:6px 0 0;color:var(--muted);font-size:13px}
+
+    .small{font-size:12px;color:var(--muted)}
+    .hint{color:var(--muted);font-size:12px}
+
+    /* no-scroll helper */
+    *{box-sizing:border-box}
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen p-6">
+<body>
+  <div class="wrap">
+    <div class="panel" role="application" aria-label="Placar do Happy Boy">
 
-  <div class="max-w-6xl mx-auto flex flex-col items-center">
-    <h1 class="text-4xl font-bold mb-4">📊 Placar do Ribeiro — Painel Oficial</h1>
+      <div class="hero" id="hero">
+        <div>
+          <div class="title">Estamos a <span id="display-time" class="timebig">0 dias, 0 horas, 0 minutos e 0 segundos</span> sem comentários, observações, imitações ou falas envolvendo outros colegas por parte do Happy Boy.</div>
+          <div class="sub">Contador em tempo real — estilo irônico & absurdo. (Atualiza a cada segundo)</div>
+        </div>
 
-    <!-- cards -->
-    <div id="cards" class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full mb-8"></div>
+        <div class="controls">
+          <button id="btn-register" class="btn primary">Registrar nova fala do Happy Boy</button>
+          <button id="btn-clear" class="btn ghost">Limpar histórico</button>
+          <div style="flex:1"></div>
+          <div class="small hint" id="toast" aria-live="polite"></div>
+        </div>
 
-    <!-- chart controls & chart -->
-    <div class="bg-white p-6 rounded-xl shadow-md border w-full mb-6">
-      <h2 class="text-xl font-bold mb-4 text-center">Gráficos por período</h2>
-
-      <div class="flex justify-center gap-4 mb-4">
-        <button id="btn-day" class="px-3 py-1 rounded bg-gray-200">Dia</button>
-        <button id="btn-week" class="px-3 py-1 rounded bg-gray-200">Semana</button>
-        <button id="btn-month" class="px-3 py-1 rounded bg-gray-200">Mês</button>
+        <div class="timeline-wrap">
+          <div class="legend"><span id="legend-left">Últimas 24 horas</span><span id="legend-right" class="small">0 eventos</span></div>
+          <svg id="timeline" class="timeline-canvas" viewBox="0 0 1000 140" preserveAspectRatio="none" aria-hidden="false"></svg>
+        </div>
       </div>
 
-      <canvas id="barsChart" width="800" height="300"></canvas>
-    </div>
+      <div class="side">
+        <div class="mini">
+          <h4>Resumo</h4>
+          <p id="resets">0 ocorrências registradas</p>
+          <p class="small">Últimos registros aparecem no timeline à esquerda.</p>
+        </div>
 
-    <!-- mini card -->
-    <div id="mini-card" class="bg-white p-4 rounded-xl shadow-md border max-w-sm w-full text-center mb-4">
-      <h3 class="font-bold mb-2 text-lg">📋 Mini Card do Ribeiro</h3>
-      <div id="mini-card-content" class="text-left"></div>
-    </div>
+        <div class="mini">
+          <h4>Exportar</h4>
+          <p class="hint">Você pode exportar o histórico (CSV) ou capturar o mini-card como imagem.</p>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button id="export-csv" class="btn">Exportar CSV</button>
+            <button id="export-png" class="btn">Exportar PNG</button>
+          </div>
+        </div>
 
-    <!-- actions -->
-    <div class="flex gap-4">
-      <button id="export-image" class="bg-green-600 text-white px-4 py-2 rounded">Exportar Mini-Card</button>
-      <button id="export-csv" class="bg-gray-700 text-white px-4 py-2 rounded">Exportar CSV</button>
-    </div>
+        <div class="mini">
+          <h4>Sobre</h4>
+          <p class="small">Placar minimalista, leve, sem rolagem — pronto para GitHub Pages. Dados salvos em localStorage.</p>
+        </div>
+      </div>
 
-    <footer class="mt-6 text-sm text-gray-500">Arquivo único pronto para GitHub Pages — sem build.</footer>
+    </div>
   </div>
 
 <script>
-/*
-  Placar do Ribeiro - single-file JS
-  - mantém textos aprovados
-  - salva estado em localStorage
-  - charts com Chart.js
-  - export CSV + png
-*/
+(function(){
+  // Single-file minimal timeline for "Happy Boy" — last 24 hours
+  const STORAGE_KEY = 'placar_happyboy_events_v1';
+  const now = () => Date.now();
+  const DAY_MS = 24*60*60*1000;
 
-// --- textos (mantidos tal como aprovados) ---
-const CATEGORY_TEXTS = [
-  {
-    id: 1,
-    icon: "🗣️",
-    label: "Estamos {dias} dias sem comentários, observações ou falas envolvendo outros colegas por parte do colaborador Ribeiro",
-    description: "Monitoramento de menções diretas ou indiretas a outros colaboradores.",
-    reaction: "🤨"
-  },
-  {
-    id: 2,
-    icon: "🎭",
-    label: "Estamos {dias} dias sem imitações de colegas por parte do colaborador Ribeiro",
-    description: "Acompanhamento de manifestações performáticas imitativas.",
-    reaction: "😆"
-  },
-  {
-    id: 3,
-    icon: "🤡",
-    label: "Estamos {dias} dias sem piadinhas sem graça envolvendo colegas, feitas pelo colaborador Ribeiro",
-    description: "Controle de manifestações humorísticas de gosto duvidoso.",
-    reaction: "🙃"
+  // load/save
+  function load(){
+    try{ const raw = localStorage.getItem(STORAGE_KEY); return raw?JSON.parse(raw):[] }catch(e){return[]}
   }
-];
+  function save(events){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(events)) }catch(e){} }
 
-const STORAGE_KEY = "placar_do_ribeiro:v5_single";
+  // state
+  let events = load(); // array of {at:timestamp}
 
-// util: days since ISO
-function daysSinceISO(iso) {
-  if (!iso) return 0;
-  const diff = Date.now() - new Date(iso).getTime();
-  return Math.floor(diff / (1000 * 60 * 60 * 24));
-}
+  // UI refs
+  const display = document.getElementById('display-time');
+  const btn = document.getElementById('btn-register');
+  const btnClear = document.getElementById('btn-clear');
+  const legendRight = document.getElementById('legend-right');
+  const resetsP = document.getElementById('resets');
+  const svg = document.getElementById('timeline');
+  const toast = document.getElementById('toast');
 
-// grouping helpers
-function groupByDay(history) {
-  const map = {};
-  history.forEach(h => {
-    const day = h.at.split("T")[0];
-    map[day] = (map[day] || 0) + 1;
-  });
-  // return sorted by date asc
-  return Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0])).map(([date,count])=>({label:date,count}));
-}
-function groupByWeek(history) {
-  const map = {};
-  history.forEach(h => {
-    const d = new Date(h.at);
-    const year = d.getFullYear();
-    // week number (ISO-like approximation)
-    const firstDayOfYear = new Date(year,0,1);
-    const week = Math.ceil((((d - firstDayOfYear)/86400000) + firstDayOfYear.getDay()+1)/7);
-    const key = `${year}-W${week}`;
-    map[key] = (map[key] || 0) + 1;
-  });
-  return Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0])).map(([week,count])=>({label:week,count}));
-}
-function groupByMonth(history) {
-  const map = {};
-  history.forEach(h => {
-    const d = new Date(h.at);
-    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
-    map[key] = (map[key] || 0) + 1;
-  });
-  return Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0])).map(([month,count])=>({label:month,count}));
-}
+  // helper: humanize time since latest event
+  function timeSince(ts){
+    if(!ts) return {d:0,h:0,m:0,s:0};
+    let diff = Math.max(0, Math.floor((now() - ts)/1000));
+    const d = Math.floor(diff/86400); diff%=86400;
+    const h = Math.floor(diff/3600); diff%=3600;
+    const m = Math.floor(diff/60); const s = diff%60;
+    return {d,h,m,s};
+  }
 
-// state management (localStorage)
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch (e) { /* ignore */ }
-  // default initial state
-  return CATEGORY_TEXTS.map(c => ({
-    id: c.id,
-    icon: c.icon,
-    label: c.label,
-    description: c.description,
-    reaction: c.reaction,
-    lastAt: null,
-    resets: 0,
-    history: []
-  }));
-}
-function saveState(state) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
-}
+  function formatFull(t){
+    return `${t.d} dias, ${t.h} horas, ${t.m} minutos e ${t.s} segundos`;
+  }
 
-// initial
-let categories = loadState();
+  // render counter every second
+  function renderCounter(){
+    const last = events.length?events[events.length-1].at:null;
+    const t = timeSince(last);
+    display.textContent = formatFull(t);
+    requestAnimationFrame(()=>{});
+  }
 
-// DOM refs
-const cardsContainer = document.getElementById("cards");
-const miniContent = document.getElementById("mini-card-content");
-const exportImageBtn = document.getElementById("export-image");
-const exportCsvBtn = document.getElementById("export-csv");
-const btnDay = document.getElementById("btn-day");
-const btnWeek = document.getElementById("btn-week");
-const btnMonth = document.getElementById("btn-month");
-const ctx = document.getElementById("barsChart").getContext("2d");
-let currentPeriod = "day";
-let chartInstance = null;
+  // toast
+  function showToast(txt){
+    toast.textContent = txt;
+    setTimeout(()=>{ if(toast.textContent===txt) toast.textContent='';},1800);
+  }
 
-// render functions
-function renderCards() {
-  cardsContainer.innerHTML = "";
-  categories.forEach(cat => {
-    const div = document.createElement("div");
-    div.className = "bg-white p-4 rounded-xl shadow-md border";
-    div.innerHTML = `
-      <div class="text-3xl mb-2">${cat.icon}</div>
-      <p class="card-title">${cat.label.replace("{dias}", String(daysSinceISO(cat.lastAt)))}</p>
-      <p class="text-sm text-gray-600 mb-2">${cat.description}</p>
-      <p><strong>Dias sem ocorrência:</strong> ${daysSinceISO(cat.lastAt)}</p>
-      <p><strong>Total registrado:</strong> ${cat.resets}</p>
-      <p class="text-xs text-gray-400 mb-3">Registros históricos: ${cat.history.length}</p>
-      <button class="register-btn bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700">${'Registrar ocorrência ' + (cat.reaction||'')}</button>
-    `;
-    const btn = div.querySelector(".register-btn");
-    btn.addEventListener("click", () => {
-      registrar(cat.id);
-    });
-    cardsContainer.appendChild(div);
-  });
-  renderMiniCard();
-}
+  // timeline drawing (simple, ultra-light, responsive)
+  function drawTimeline(){
+    const w = svg.clientWidth || 1000;
+    const h = svg.clientHeight || 140;
+    const pad = 40; // left/right padding
+    const innerW = Math.max(10,w - pad*2);
+    // clear
+    while(svg.firstChild) svg.removeChild(svg.firstChild);
 
-function renderMiniCard() {
-  miniContent.innerHTML = "";
-  categories.forEach(c => {
-    const p = document.createElement("p");
-    p.className = "mb-1";
-    p.textContent = `${c.icon} ${c.label.replace("{dias}", String(daysSinceISO(c.lastAt)))} — ${c.resets} ocorrências`;
-    miniContent.appendChild(p);
-  });
-}
-
-// register occurrence
-function registrar(id) {
-  const now = new Date().toISOString();
-  categories = categories.map(cat => {
-    if (cat.id === id) {
-      const updated = {
-        ...cat,
-        lastAt: now,
-        resets: (cat.resets || 0) + 1,
-        history: [...cat.history, { at: now }]
-      };
-      return updated;
+    // background grid lines (6 ticks)
+    for(let i=0;i<=6;i++){
+      const x = pad + (innerW*(i/6));
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1',x); line.setAttribute('x2',x);
+      line.setAttribute('y1',18); line.setAttribute('y2',h-18);
+      line.setAttribute('stroke','rgba(255,255,255,0.03)'); line.setAttribute('stroke-width','1');
+      svg.appendChild(line);
     }
-    return cat;
-  });
-  saveState(categories);
-  renderCards();
-  updateChart(); // refresh chart
-}
 
-// CSV export
-function exportCSV() {
-  let csv = "categoria,quando\n";
-  categories.forEach(c => {
-    c.history.forEach(h => {
-      const catLabel = c.label.replace("{dias}", "").trim().replace(/\n/g," ");
-      csv += `"${catLabel}","${h.at}"\n`;
-    });
-  });
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  // FileSaver is available as saveAs global due to UMD CDN; support both:
-  if (typeof saveAs === "function") {
-    saveAs(blob, "placar_do_ribeiro.csv");
-  } else if (typeof window.saveAs === "function") {
-    window.saveAs(blob, "placar_do_ribeiro.csv");
-  } else if (window.FileSaver && window.FileSaver.saveAs) {
-    window.FileSaver.saveAs(blob, "placar_do_ribeiro.csv");
-  } else {
-    // fallback: download link
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "placar_do_ribeiro.csv";
-    a.click();
-  }
-}
-
-// export mini-card image
-async function exportMiniCard() {
-  const el = document.getElementById("mini-card");
-  if (!el) return;
-  const canvas = await html2canvas(el);
-  return new Promise((resolve) => {
-    canvas.toBlob((blob) => {
-      if (!blob) { resolve(); return; }
-      if (typeof saveAs === "function") {
-        saveAs(blob, "placar_ribeiro.png");
-      } else if (window.FileSaver && window.FileSaver.saveAs) {
-        window.FileSaver.saveAs(blob, "placar_ribeiro.png");
-      } else {
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = "placar_ribeiro.png";
-        a.click();
-      }
-      resolve();
-    });
-  });
-}
-
-// build chart datasets for selected period
-function buildChartData(period) {
-  // get unique labels for x-axis across all categories
-  const grouped = categories.map(cat => {
-    const hist = cat.history || [];
-    if (period === "day") return { id: cat.id, label: cat.icon, data: groupByDay(hist) };
-    if (period === "week") return { id: cat.id, label: cat.icon, data: groupByWeek(hist) };
-    return { id: cat.id, label: cat.icon, data: groupByMonth(hist) };
-  });
-
-  // union of all x labels
-  const xLabelsSet = new Set();
-  grouped.forEach(g => g.data.forEach(item => xLabelsSet.add(item.label)));
-  const xLabels = Array.from(xLabelsSet).sort();
-
-  const datasets = grouped.map((g, idx) => {
-    const map = g.data.reduce((acc, cur) => { acc[cur.label] = cur.count; return acc; }, {});
-    return {
-      label: g.label,
-      data: xLabels.map(x => map[x] || 0),
-      backgroundColor: ["#8884d8","#82ca9d","#ffc658"][idx % 3]
-    };
-  });
-
-  return { xLabels, datasets };
-}
-
-// Chart management (Chart.js)
-function updateChart() {
-  const { xLabels, datasets } = buildChartData(currentPeriod);
-  if (chartInstance) {
-    chartInstance.data.labels = xLabels;
-    chartInstance.data.datasets = datasets;
-    chartInstance.update();
-    return;
-  }
-  chartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: xLabels,
-      datasets: datasets
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: { stacked: false },
-        y: { beginAtZero: true, ticks: { precision: 0 } }
-      },
-      plugins: {
-        tooltip: { mode: 'index', intersect: false }
-      }
+    // time labels every 6 hours
+    const nowTs = now();
+    for(let i=0;i<=4;i++){ // 0,6,12,18,24
+      const hours = i*6; const labelTs = nowTs - (24-hours)*60*60*1000;
+      const x = pad + (innerW*(i/4));
+      const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+      text.setAttribute('x',x); text.setAttribute('y',h-2);
+      text.setAttribute('fill','rgba(255,255,255,0.3)'); text.setAttribute('font-size','11'); text.setAttribute('text-anchor','middle');
+      const date = new Date(labelTs);
+      const hh = String(date.getHours()).padStart(2,'0');
+      text.textContent = `${hh}:00`;
+      svg.appendChild(text);
     }
-  });
-}
 
-// events
-exportImageBtn.addEventListener("click", exportMiniCard);
-exportCsvBtn.addEventListener("click", exportCSV);
-btnDay.addEventListener("click", () => { currentPeriod = "day"; setActiveBtn(btnDay); updateChart(); });
-btnWeek.addEventListener("click", () => { currentPeriod = "week"; setActiveBtn(btnWeek); updateChart(); });
-btnMonth.addEventListener("click", () => { currentPeriod = "month"; setActiveBtn(btnMonth); updateChart(); });
+    // filter events in last 24h
+    const cutoff = nowTs - DAY_MS;
+    const recent = events.filter(e=>e.at >= cutoff);
+    legendRight.textContent = `${recent.length} eventos`;
+    resetsP.textContent = `${events.length} ocorrências registradas`;
 
-function setActiveBtn(active) {
-  [btnDay, btnWeek, btnMonth].forEach(b => b.classList.remove("bg-gray-300"));
-  active.classList.add("bg-gray-300");
-}
+    if(recent.length===0){
+      // draw empty line
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1',pad); line.setAttribute('x2',pad+innerW);
+      line.setAttribute('y1',h/2); line.setAttribute('y2',h/2);
+      line.setAttribute('stroke','rgba(255,255,255,0.04)'); line.setAttribute('stroke-width','2');
+      svg.appendChild(line);
+      return;
+    }
 
-// initial render
-renderCards();
-setActiveBtn(btnDay);
-updateChart();
+    // map times to x
+    const points = recent.map(r=>{
+      const frac = (r.at - cutoff) / DAY_MS; // 0..1
+      const x = pad + frac * innerW;
+      return {x,y: h/2, t:r.at};
+    });
 
+    // draw polyline
+    const poly = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+    const coords = points.map(p=>`${p.x},${p.y}`).join(' ');
+    poly.setAttribute('points',coords);
+    poly.setAttribute('fill','none'); poly.setAttribute('stroke','#7c3aed'); poly.setAttribute('stroke-width','2');
+    svg.appendChild(poly);
+
+    // draw points
+    points.forEach(p=>{
+      const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('cx',p.x); c.setAttribute('cy',p.y); c.setAttribute('r',4);
+      c.setAttribute('fill','#6ee7b7'); c.setAttribute('stroke','#0b1220'); c.setAttribute('stroke-width','1');
+      svg.appendChild(c);
+      // tooltip on hover
+      c.addEventListener('mouseenter',()=>{
+        const d = new Date(p.t);
+        showToast(d.toLocaleString());
+      });
+    });
+  }
+
+  // register
+  function registerNow(){
+    const ts = now(); events.push({at:ts}); save(events); renderCounter(); drawTimeline(); showToast('Registrado ✅');
+  }
+  function clearAll(){ if(!confirm('Limpar todo o histórico?')) return; events=[]; save(events); renderCounter(); drawTimeline(); showToast('Histórico limpo'); }
+
+  // export CSV
+  function exportCSV(){
+    let csv = 'quando\n'; events.forEach(e=>csv += `${new Date(e.at).toISOString()}\n`);
+    const blob = new Blob([csv],{type:'text/csv'}); const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href=url; a.download='placar_happyboy.csv'; a.click(); URL.revokeObjectURL(url);
+  }
+
+  // export PNG (mini-card)
+  async function exportPNG(){
+    const el = document.querySelector('.panel');
+    if(!el) return; const canvas = await html2canvas(el,{backgroundColor:null,scale:2});
+    return new Promise(res=>canvas.toBlob(b=>{ if(b){ const url=URL.createObjectURL(b); const a=document.createElement('a'); a.href=url; a.download='placar_happyboy.png'; a.click(); URL.revokeObjectURL(url);} res();}));
+  }
+
+  // attach events
+  btn.addEventListener('click',registerNow);
+  btnClear.addEventListener('click',clearAll);
+  document.getElementById('export-csv').addEventListener('click',exportCSV);
+  document.getElementById('export-png').addEventListener('click',exportPNG);
+
+  // auto updates
+  setInterval(()=>{ renderCounter(); drawTimeline(); },1000);
+  // initial render
+  renderCounter(); drawTimeline();
+})();
 </script>
 </body>
 </html>

@@ -1,262 +1,87 @@
-<!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Placar do Happy Boy — Single File</title>
-  <style>
-    :root{
-      --bg:#0b1220; /* dark blue/gray */
-      --card:#0f1724;
-      --muted:#9ca3af;
-      --accent:#6ee7b7;
-      --glass: rgba(255,255,255,0.03);
-    }
-    html,body{height:100%;}
-    body{margin:0;background:var(--bg);color:#e6eef8;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;overflow:hidden}
-    .wrap{height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-    .panel{width:980px;max-width:98vw;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:0 6px 30px rgba(2,6,23,0.6);padding:22px;display:grid;grid-template-columns:1fr 360px;gap:18px}
-    @media(max-width:900px){.panel{grid-template-columns:1fr;gap:12px;padding:16px}}
+import React, { useState, useEffect } from 'react';
 
-    /* Left column */
-    .hero{padding:18px;border-radius:10px;background:var(--card);display:flex;flex-direction:column;gap:12px}
-    .title{font-weight:700;font-size:18px;line-height:1.1}
-    .counter{font-size:20px;font-weight:600;color:#fff}
-    .timebig{font-size:28px;font-weight:800;color:var(--accent);letter-spacing:0.6px}
-    .sub{color:var(--muted);font-size:13px}
+// **PLACAR SUPER ESPORTIVO — estilo TV / campeonato, números gigantes + frases hilárias**
+export default function PlacarGigante() {
+  const [seconds, setSeconds] = useState(0);
+  const [record, setRecord] = useState(0);
+  const [count, setCount] = useState(0);
+  const [phraseIndex, setPhraseIndex] = useState(0);
 
-    .controls{display:flex;gap:10px;align-items:center}
-    .btn{background:var(--glass);border:1px solid rgba(255,255,255,0.04);padding:10px 12px;border-radius:8px;color:#e6eef8;cursor:pointer}
-    .btn.primary{background:linear-gradient(90deg,#0ea5a3,#7c3aed);color:white;font-weight:700;border:none}
-    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04)}
+  const phrases = [
+    'Happy Boy está quieto há tempo suficiente para entrar no Top 10 Mundial.',
+    'Silêncio absoluto. Os comentaristas estão sem pauta.',
+    'Momento histórico: Happy Boy supera expectativas novamente.',
+    'Níveis de quietude jamais vistos desde o torneio de 2018.',
+    'Estatísticos confirmam: isso já virou desempenho profissional.',
+    'Fãs vibram: “Fica quieto, Happy Boy!” e ele entrega!',
+    'A arbitragem confirma: nenhum ruído detectado nos últimos instantes.'
+  ];
 
-    /* Timeline */
-    .timeline-wrap{padding:12px;border-radius:10px;background:rgba(255,255,255,0.01);display:flex;flex-direction:column;gap:10px}
-    .timeline-canvas{width:100%;height:140px}
-    .legend{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}
+  useEffect(() => {
+    const t = setInterval(() => setSeconds((s) => s + 1), 1000);
+    const p = setInterval(() => setPhraseIndex((i) => (i + 1) % phrases.length), 30000);
+    return () => {
+      clearInterval(t);
+      clearInterval(p);
+    };
+  }, []);
 
-    /* right column */
-    .side{display:flex;flex-direction:column;gap:12px}
-    .mini{padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03)}
-    .mini h4{margin:0;font-size:13px}
-    .mini p{margin:6px 0 0;color:var(--muted);font-size:13px}
+  const reset = () => {
+    if (seconds > record) setRecord(seconds);
+    setSeconds(0);
+    setCount((c) => c + 1);
+  };
 
-    .small{font-size:12px;color:var(--muted)}
-    .hint{color:var(--muted);font-size:12px}
+  const format = (s) => {
+    const m = Math.floor(s / 60);
+    const ss = s % 60;
+    return `${String(m).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+  };
 
-    /* no-scroll helper */
-    *{box-sizing:border-box}
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="panel" role="application" aria-label="Placar do Happy Boy">
+  return (
+    <div style={{ minHeight: '100vh', background: '#0a0d18', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div style={{ width: 1000, maxWidth: '98vw', background: '#11172b', borderRadius: 16, padding: '30px 40px', boxShadow: '0 0 40px rgba(0,0,0,0.5)', color: '#fff' }}>
 
-      <div class="hero" id="hero">
-        <div>
-          <div class="title">Estamos a <span id="display-time" class="timebig">0 dias, 0 horas, 0 minutos e 0 segundos</span> sem comentários, observações, imitações ou falas envolvendo outros colegas por parte do Happy Boy.</div>
-          <div class="sub">Contador em tempo real — estilo irônico & absurdo. (Atualiza a cada segundo)</div>
+        {/* HEADER */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30 }}>
+          <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: 1 }}>PLACAR OFICIAL — HAPPY BOY</div>
+          <button onClick={reset} style={{ padding: '10px 18px', borderRadius: 10, fontSize: 18, fontWeight: 700, border: 'none', background: '#ff4444', color: '#fff' }}>Registrar fala</button>
         </div>
 
-        <div class="controls">
-          <button id="btn-register" class="btn primary">Registrar nova fala do Happy Boy</button>
-          <button id="btn-clear" class="btn ghost">Limpar histórico</button>
-          <div style="flex:1"></div>
-          <div class="small hint" id="toast" aria-live="polite"></div>
-        </div>
+        {/* PAINEL PRINCIPAL */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 30 }}>
 
-        <div class="timeline-wrap">
-          <div class="legend"><span id="legend-left">Últimas 24 horas</span><span id="legend-right" class="small">0 eventos</span></div>
-          <svg id="timeline" class="timeline-canvas" viewBox="0 0 1000 140" preserveAspectRatio="none" aria-hidden="false"></svg>
-        </div>
-      </div>
+          {/* CONTADOR ATUAL */}
+          <div style={{ background: '#0c1323', padding: '30px 20px', borderRadius: 14, textAlign: 'center' }}>
+            <div style={{ fontSize: 20, opacity: 0.7, marginBottom: 10 }}>Tempo Atual Sem Fala</div>
+            <div style={{ fontSize: 110, fontWeight: 900, lineHeight: '100px', color: '#7cffc4', textShadow: '0 0 18px #0f0' }}>
+              {format(seconds)}
+            </div>
+          </div>
 
-      <div class="side">
-        <div class="mini">
-          <h4>Resumo</h4>
-          <p id="resets">0 ocorrências registradas</p>
-          <p class="small">Últimos registros aparecem no timeline à esquerda.</p>
-        </div>
+          {/* QUANTAS VEZES ELE PERTURBOU */}
+          <div style={{ background: '#0c1323', padding: '30px 20px', borderRadius: 14, textAlign: 'center' }}>
+            <div style={{ fontSize: 20, opacity: 0.7, marginBottom: 10 }}>Total de Interrupções</div>
+            <div style={{ fontSize: 110, fontWeight: 900, lineHeight: '100px', color: '#ff7c7c', textShadow: '0 0 18px #f00' }}>
+              {count}
+            </div>
+          </div>
 
-        <div class="mini">
-          <h4>Exportar</h4>
-          <p class="hint">Você pode exportar o histórico (CSV) ou capturar o mini-card como imagem.</p>
-          <div style="display:flex;gap:8px;margin-top:10px">
-            <button id="export-csv" class="btn">Exportar CSV</button>
-            <button id="export-png" class="btn">Exportar PNG</button>
+          {/* RECORDE */}
+          <div style={{ background: '#0c1323', padding: '30px 20px', borderRadius: 14, textAlign: 'center' }}>
+            <div style={{ fontSize: 20, opacity: 0.7, marginBottom: 10 }}>Recorde Absoluto</div>
+            <div style={{ fontSize: 110, fontWeight: 900, lineHeight: '100px', color: '#ffd54a', textShadow: '0 0 18px #fc3' }}>
+              {format(record)}
+            </div>
           </div>
         </div>
 
-        <div class="mini">
-          <h4>Sobre</h4>
-          <p class="small">Placar minimalista, leve, sem rolagem — pronto para GitHub Pages. Dados salvos em localStorage.</p>
+        {/* FRASE HILÁRIA */}
+        <div style={{ marginTop: 40, background: '#182033', padding: '20px 25px', borderRadius: 12, fontSize: 20, lineHeight: '28px', fontWeight: 500, minHeight: 80 }}>
+          {phrases[phraseIndex]}
         </div>
+
       </div>
-
     </div>
-  </div>
-
-<script>
-(function(){
-  // Single-file minimal timeline for "Happy Boy" — last 24 hours
-  const STORAGE_KEY = 'placar_happyboy_events_v1';
-  const now = () => Date.now();
-  const DAY_MS = 24*60*60*1000;
-
-  // load/save
-  function load(){
-    try{ const raw = localStorage.getItem(STORAGE_KEY); return raw?JSON.parse(raw):[] }catch(e){return[]}
-  }
-  function save(events){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(events)) }catch(e){} }
-
-  // state
-  let events = load(); // array of {at:timestamp}
-
-  // UI refs
-  const display = document.getElementById('display-time');
-  const btn = document.getElementById('btn-register');
-  const btnClear = document.getElementById('btn-clear');
-  const legendRight = document.getElementById('legend-right');
-  const resetsP = document.getElementById('resets');
-  const svg = document.getElementById('timeline');
-  const toast = document.getElementById('toast');
-
-  // helper: humanize time since latest event
-  function timeSince(ts){
-    if(!ts) return {d:0,h:0,m:0,s:0};
-    let diff = Math.max(0, Math.floor((now() - ts)/1000));
-    const d = Math.floor(diff/86400); diff%=86400;
-    const h = Math.floor(diff/3600); diff%=3600;
-    const m = Math.floor(diff/60); const s = diff%60;
-    return {d,h,m,s};
-  }
-
-  function formatFull(t){
-    return `${t.d} dias, ${t.h} horas, ${t.m} minutos e ${t.s} segundos`;
-  }
-
-  // render counter every second
-  function renderCounter(){
-    const last = events.length?events[events.length-1].at:null;
-    const t = timeSince(last);
-    display.textContent = formatFull(t);
-    requestAnimationFrame(()=>{});
-  }
-
-  // toast
-  function showToast(txt){
-    toast.textContent = txt;
-    setTimeout(()=>{ if(toast.textContent===txt) toast.textContent='';},1800);
-  }
-
-  // timeline drawing (simple, ultra-light, responsive)
-  function drawTimeline(){
-    const w = svg.clientWidth || 1000;
-    const h = svg.clientHeight || 140;
-    const pad = 40; // left/right padding
-    const innerW = Math.max(10,w - pad*2);
-    // clear
-    while(svg.firstChild) svg.removeChild(svg.firstChild);
-
-    // background grid lines (6 ticks)
-    for(let i=0;i<=6;i++){
-      const x = pad + (innerW*(i/6));
-      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-      line.setAttribute('x1',x); line.setAttribute('x2',x);
-      line.setAttribute('y1',18); line.setAttribute('y2',h-18);
-      line.setAttribute('stroke','rgba(255,255,255,0.03)'); line.setAttribute('stroke-width','1');
-      svg.appendChild(line);
-    }
-
-    // time labels every 6 hours
-    const nowTs = now();
-    for(let i=0;i<=4;i++){ // 0,6,12,18,24
-      const hours = i*6; const labelTs = nowTs - (24-hours)*60*60*1000;
-      const x = pad + (innerW*(i/4));
-      const text = document.createElementNS('http://www.w3.org/2000/svg','text');
-      text.setAttribute('x',x); text.setAttribute('y',h-2);
-      text.setAttribute('fill','rgba(255,255,255,0.3)'); text.setAttribute('font-size','11'); text.setAttribute('text-anchor','middle');
-      const date = new Date(labelTs);
-      const hh = String(date.getHours()).padStart(2,'0');
-      text.textContent = `${hh}:00`;
-      svg.appendChild(text);
-    }
-
-    // filter events in last 24h
-    const cutoff = nowTs - DAY_MS;
-    const recent = events.filter(e=>e.at >= cutoff);
-    legendRight.textContent = `${recent.length} eventos`;
-    resetsP.textContent = `${events.length} ocorrências registradas`;
-
-    if(recent.length===0){
-      // draw empty line
-      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-      line.setAttribute('x1',pad); line.setAttribute('x2',pad+innerW);
-      line.setAttribute('y1',h/2); line.setAttribute('y2',h/2);
-      line.setAttribute('stroke','rgba(255,255,255,0.04)'); line.setAttribute('stroke-width','2');
-      svg.appendChild(line);
-      return;
-    }
-
-    // map times to x
-    const points = recent.map(r=>{
-      const frac = (r.at - cutoff) / DAY_MS; // 0..1
-      const x = pad + frac * innerW;
-      return {x,y: h/2, t:r.at};
-    });
-
-    // draw polyline
-    const poly = document.createElementNS('http://www.w3.org/2000/svg','polyline');
-    const coords = points.map(p=>`${p.x},${p.y}`).join(' ');
-    poly.setAttribute('points',coords);
-    poly.setAttribute('fill','none'); poly.setAttribute('stroke','#7c3aed'); poly.setAttribute('stroke-width','2');
-    svg.appendChild(poly);
-
-    // draw points
-    points.forEach(p=>{
-      const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
-      c.setAttribute('cx',p.x); c.setAttribute('cy',p.y); c.setAttribute('r',4);
-      c.setAttribute('fill','#6ee7b7'); c.setAttribute('stroke','#0b1220'); c.setAttribute('stroke-width','1');
-      svg.appendChild(c);
-      // tooltip on hover
-      c.addEventListener('mouseenter',()=>{
-        const d = new Date(p.t);
-        showToast(d.toLocaleString());
-      });
-    });
-  }
-
-  // register
-  function registerNow(){
-    const ts = now(); events.push({at:ts}); save(events); renderCounter(); drawTimeline(); showToast('Registrado ✅');
-  }
-  function clearAll(){ if(!confirm('Limpar todo o histórico?')) return; events=[]; save(events); renderCounter(); drawTimeline(); showToast('Histórico limpo'); }
-
-  // export CSV
-  function exportCSV(){
-    let csv = 'quando\n'; events.forEach(e=>csv += `${new Date(e.at).toISOString()}\n`);
-    const blob = new Blob([csv],{type:'text/csv'}); const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href=url; a.download='placar_happyboy.csv'; a.click(); URL.revokeObjectURL(url);
-  }
-
-  // export PNG (mini-card)
-  async function exportPNG(){
-    const el = document.querySelector('.panel');
-    if(!el) return; const canvas = await html2canvas(el,{backgroundColor:null,scale:2});
-    return new Promise(res=>canvas.toBlob(b=>{ if(b){ const url=URL.createObjectURL(b); const a=document.createElement('a'); a.href=url; a.download='placar_happyboy.png'; a.click(); URL.revokeObjectURL(url);} res();}));
-  }
-
-  // attach events
-  btn.addEventListener('click',registerNow);
-  btnClear.addEventListener('click',clearAll);
-  document.getElementById('export-csv').addEventListener('click',exportCSV);
-  document.getElementById('export-png').addEventListener('click',exportPNG);
-
-  // auto updates
-  setInterval(()=>{ renderCounter(); drawTimeline(); },1000);
-  // initial render
-  renderCounter(); drawTimeline();
-})();
-</script>
-</body>
-</html>
+  );
+}

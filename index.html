@@ -1,6 +1,74 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Placar Happy Boy — ESPN Modern Neon (Single file)</title>
+
+  <!-- Optional: html2canvas for PNG export (already included) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#030513;
+      --panel:#071028;
+      --card:#0b1526;
+      --muted:#9aa6b2;
+      --accent:#00ffd1;
+      --accent-2:#7c3aed;
+      --highlight:#ffd54a;
+      --danger:#ff6b6b;
+      --glass: rgba(255,255,255,0.03);
+    }
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#020313,#071228);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;color:#eaf6f5;-webkit-font-smoothing:antialiased}
+    .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px}
+    .panel{width:1060px;max-width:98vw;border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));box-shadow:0 14px 50px rgba(2,6,23,0.75);padding:22px;display:grid;grid-template-columns:1fr 360px;gap:18px}
+    @media(max-width:980px){.panel{grid-template-columns:1fr;gap:12px;padding:16px}}
+
+    /* Left */
+    .left{padding:18px;border-radius:10px;background:var(--card);display:flex;flex-direction:column;gap:14px}
+    .hdr{display:flex;justify-content:space-between;align-items:center}
+    .title{font-weight:800;font-size:20px;letter-spacing:0.6px}
+    .controls{display:flex;gap:10px;align-items:center}
+    .btn{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:10px 12px;border-radius:10px;color:var(--muted);cursor:pointer;transition:transform .12s ease,background .12s ease}
+    .btn:hover{transform:translateY(-2px);background:rgba(255,255,255,0.04)}
+    .btn.primary{background:linear-gradient(90deg,var(--accent-2),#00b7d8);color:#04121a;border:none;font-weight:700;box-shadow:0 8px 26px rgba(124,58,237,0.12)}
+
+    .big-time{font-family: 'Courier New',monospace;font-size:84px;font-weight:900;color:var(--accent);text-shadow:0 8px 24px rgba(124,58,237,0.12),0 0 24px rgba(0,255,209,0.06);line-height:0.9;display:inline-block}
+    .muted{color:var(--muted)}
+    .bar{height:14px;background:rgba(255,255,255,0.04);border-radius:8px;overflow:hidden;margin-top:8px}
+    .bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent-2),var(--accent));transition:width 600ms ease}
+
+    .status{background:linear-gradient(90deg,rgba(255,255,255,0.01),rgba(255,255,255,0.02));padding:12px 14px;border-radius:10px;color:var(--muted);font-size:15px}
+
+    /* Right */
+    .right{display:flex;flex-direction:column;gap:12px}
+    .card{padding:14px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.02)}
+    .card h4{margin:0;font-size:13px;color:var(--muted)}
+    .card .big{font-size:36px;font-weight:900;margin-top:8px;color:#fff}
+
+    .center{text-align:center}
+    .tiny{font-size:12px;color:var(--muted)}
+    .enter{transform:translateY(6px);opacity:0;animation:enter .6s forwards ease}
+    @keyframes enter{to{transform:none;opacity:1}}
+
+    @media(max-width:540px){
+      .big-time{font-size: clamp(36px, 12vw, 64px)}
+      .panel{padding:12px;gap:10px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="panel" id="app"><!-- svelte mounts here --></div>
+  </div>
+
+  <!-- Svelte component source (as plain text for in-browser compile) -->
+  <script id="component" type="text/plain">
 <script>
   import { onMount } from 'svelte';
 
+  // reactive state
   let seconds = 0;
   let record = 0;
   let count = 0;
@@ -13,23 +81,23 @@
     'Silêncio consistente — desempenho acima da média.',
     'Mantendo o foco como um verdadeiro atleta da quietude.',
     'Placar favorável: Happy Boy segue calmo e estratégico.',
-    'Momentos de ouro: concentração em alta.',
-    'Controle emocional digno de final de campeonato!'
+    'Momento de ouro: concentração em alta.',
+    'Controle emocional digno de final de campeonato.'
   ];
 
-  function loadMeta() {
-    try {
+  function loadMeta(){
+    try{
       const m = JSON.parse(localStorage.getItem(STORAGE_META) || '{}');
       record = m.record || 0;
       count = m.count || 0;
-    } catch (e) {}
+    }catch(e){}
   }
 
-  function saveMeta() {
+  function saveMeta(){
     localStorage.setItem(STORAGE_META, JSON.stringify({ record, count }));
   }
 
-  function format(s) {
+  function format(s){
     const d = Math.floor(s / 86400);
     const h = Math.floor((s % 86400) / 3600);
     const m = Math.floor((s % 3600) / 60);
@@ -38,209 +106,95 @@
     return `${pad(d)}d ${pad(h)}h ${pad(m)}m ${pad(sec)}s`;
   }
 
-  function resetTimer() {
-    if (seconds > record) {
+  // audio via WebAudio (no files needed)
+  let audioCtx;
+  function ensureAudio(){ if(audioCtx) return audioCtx; try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); return audioCtx;}catch(e){return null} }
+  function beep(freq=880,dur=0.12,vol=0.12){ const ctx = ensureAudio(); if(!ctx) return; const o=ctx.createOscillator(); const g=ctx.createGain(); o.type='sine'; o.frequency.value=freq; g.gain.value=vol; o.connect(g); g.connect(ctx.destination); o.start(); setTimeout(()=>o.stop(), dur*1000); }
+  function playApito(){ beep(1200,0.12,0.18); }
+  function playRecord(){ beep(680,0.22,0.26); }
+  function playVictory(){ beep(1400,0.16,0.18); }
+
+  function resetTimer(){
+    if(seconds > record){
       record = seconds;
       saveMeta();
+      playRecord();
+    } else {
+      playApito();
     }
     seconds = 0;
-    count++;
+    count += 1;
     saveMeta();
   }
 
-  onMount(() => {
+  onMount(()=>{
     loadMeta();
-
-    const t = setInterval(() => {
-      seconds++;
-    }, 1000);
-
-    const p = setInterval(() => {
-      phraseIndex = (phraseIndex + 1) % phrases.length;
-    }, 30000);
-
-    return () => {
-      clearInterval(t);
-      clearInterval(p);
-    };
+    const t = setInterval(()=>{ seconds += 1; },1000);
+    const p = setInterval(()=>{ phraseIndex = (phraseIndex + 1) % phrases.length; },30000);
+    return ()=>{ clearInterval(t); clearInterval(p); };
   });
 </script>
 
 <style>
-  :root {
-    --bg: #030513;
-    --panel: #071028;
-    --card: #0b1526;
-    --muted: #9aa6b2;
-    --accent: #00ffd1;
-    --accent-2: #7c3aed;
-    --highlight: #ffd54a;
-    --danger: #ff6b6b;
-  }
-
-  :global(body) {
-    margin: 0;
-    background: linear-gradient(180deg, #020313, #071228);
-    color: #eaf6f5;
-    font-family: Inter, system-ui, sans-serif;
-  }
-
-  .wrap {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 28px;
-  }
-
-  .panel {
-    width: 1060px;
-    max-width: 98vw;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.02);
-    box-shadow: 0 16px 48px rgba(2, 6, 23, 0.75);
-    padding: 22px;
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 18px;
-  }
-
-  @media (max-width: 980px) {
-    .panel {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .left {
-    background: var(--card);
-    border-radius: 10px;
-    padding: 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  .header {
-    display: flex;
-    justify-content: space-between;
-  }
-
-  button {
-    background: rgba(255, 255, 255, 0.05);
-    border: none;
-    padding: 10px 12px;
-    border-radius: 10px;
-    color: var(--muted);
-    cursor: pointer;
-  }
-
-  .primary {
-    background: linear-gradient(90deg, var(--accent-2), #00b7d8);
-    color: #04121a;
-    font-weight: 700;
-  }
-
-  .clock {
-    font-size: 80px;
-    color: var(--accent);
-    font-weight: 900;
-    text-shadow: 0 0 20px rgba(0, 255, 209, 0.3);
-  }
-
-  .bar {
-    height: 14px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  .fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent-2), var(--accent));
-    transition: width 0.6s;
-  }
-
-  .right {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .card {
-    background: rgba(255, 255, 255, 0.03);
-    padding: 14px;
-    border-radius: 10px;
-  }
-
-  .card .big {
-    font-size: 34px;
-    font-weight: 900;
-  }
-
-  .badge-img {
-    width: 70px;
-    height: 70px;
-    border-radius: 12px;
-    object-fit: cover;
-    box-shadow: 0 0 20px rgba(124, 58, 237, 0.2);
-  }
-
-  .phrase {
-    margin-top: 12px;
-    font-style: italic;
-    font-size: 15px;
-    color: var(--muted);
-  }
+  /* local component styles (keeps the document styles coherent) */
+  .root{display:flex;flex-direction:column;gap:14px}
+  .hdr{display:flex;justify-content:space-between;align-items:center}
+  .clock-row{display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .clock-left{}
+  .clock-big{font-family: 'Courier New', monospace; font-size:84px; font-weight:900; color:var(--accent); text-shadow:0 8px 24px rgba(124,58,237,0.12)}
+  .progress{margin-top:6px}
+  .phrase{margin-top:12px;font-style:italic;color:var(--muted)}
 </style>
 
-<div class="wrap">
-  <div class="panel">
-    <!-- LEFT -->
-    <div class="left">
-      <div class="header">
-        <h2>PAINEL HAPPY BOY</h2>
+<div class="root">
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="font-weight:800;font-size:18px">PLACAR OFICIAL — HAPPY BOY</div>
+      <div class="tiny muted">— zoeira corporativa</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" on:click={() => { seconds = 0; count = 0; record = 0; saveMeta(); }}>Reset Tudo</button>
+      <button class="btn primary" on:click={resetTimer}>Registrar Perturbação</button>
+    </div>
+  </div>
 
-        <button on:click={resetTimer} class="primary">
-          Registrar Perturbação
-        </button>
-      </div>
-
-      <div class="clock">
-        {format(seconds)}
-      </div>
-
-      <div class="bar">
-        <div
-          class="fill"
-          style="width: {Math.min(100, (seconds / (record || 1)) * 100)}%"
-        ></div>
-      </div>
-
-      <div class="phrase">
-        {phrases[phraseIndex]}
-      </div>
+  <div class="clock-row">
+    <div class="clock-left">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Tempo atual sem fala</div>
+      <div class="clock-big">{format(seconds)}</div>
     </div>
 
-    <!-- RIGHT -->
-    <div class="right">
-      <div class="card">
-        <h4>Recorde Absoluto</h4>
-        <div class="big">{format(record)}</div>
+    <div style="width:340px">
+      <div style="text-align:right">
+        <div style="font-size:12px;color:var(--muted)">Recorde</div>
+        <div style="font-weight:900;font-size:22px;color:var(--accent-2)">{format(record)}</div>
       </div>
 
-      <div class="card">
-        <h4>Total de Perturbações</h4>
-        <div class="big">{count}</div>
-      </div>
-
-      <div class="card">
-        <h4>Badge Happy Boy</h4>
-        <img
-          class="badge-img"
-          src="/mnt/data/77fc763d-deb9-455f-97de-68479a0e860b.png"
-          alt="Badge"
-        />
+      <div class="progress">
+        <div class="bar" aria-hidden="true"><div class="bar-fill" style="width:{Math.min(100, Math.round((seconds / Math.max(1, record))*100)) + '%'}"></div></div>
       </div>
     </div>
   </div>
+
+  <div class="phrase">{phrases[phraseIndex]}</div>
 </div>
+  </script>
+
+  <!-- compile Svelte component in-browser and mount -->
+  <script type="module">
+    import { compile } from 'https://unpkg.com/svelte@3.59.2/compiler.mjs';
+
+    (async () => {
+      const src = document.getElementById('component').textContent;
+      // compile with esm output
+      const { js } = compile(src, { format: 'esm', filename: 'Placar.svelte' });
+      const blob = new Blob([js.code], { type: 'application/javascript' });
+      const url = URL.createObjectURL(blob);
+      const mod = await import(url);
+      const App = mod.default;
+      const mount = document.getElementById('app');
+      new App({ target: mount });
+    })();
+  </script>
+</body>
+</html>

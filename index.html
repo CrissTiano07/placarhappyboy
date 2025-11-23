@@ -1,87 +1,140 @@
-import React, { useState, useEffect } from 'react';
+<script>
+    import { onMount } from "svelte";
 
-// **PLACAR SUPER ESPORTIVO — estilo TV / campeonato, números gigantes + frases hilárias**
-export default function PlacarGigante() {
-  const [seconds, setSeconds] = useState(0);
-  const [record, setRecord] = useState(0);
-  const [count, setCount] = useState(0);
-  const [phraseIndex, setPhraseIndex] = useState(0);
+    // -----------------------------
+    // VARIÁVEIS PRINCIPAIS
+    // -----------------------------
+    let seconds = 0;
+    let record = 0;
+    let count = 0;
+    let phraseIndex = 0;
 
-  const phrases = [
-    'Happy Boy está quieto há tempo suficiente para entrar no Top 10 Mundial.',
-    'Silêncio absoluto. Os comentaristas estão sem pauta.',
-    'Momento histórico: Happy Boy supera expectativas novamente.',
-    'Níveis de quietude jamais vistos desde o torneio de 2018.',
-    'Estatísticos confirmam: isso já virou desempenho profissional.',
-    'Fãs vibram: “Fica quieto, Happy Boy!” e ele entrega!',
-    'A arbitragem confirma: nenhum ruído detectado nos últimos instantes.'
-  ];
+    // STORAGE KEYS
+    const STORAGE_KEY_META = "happyboy_svelte_meta_v1";
 
-  useEffect(() => {
-    const t = setInterval(() => setSeconds((s) => s + 1), 1000);
-    const p = setInterval(() => setPhraseIndex((i) => (i + 1) % phrases.length), 30000);
-    return () => {
-      clearInterval(t);
-      clearInterval(p);
-    };
-  }, []);
+    // FRASES ROTATIVAS
+    const phrases = [
+        "Happy Boy está surpreendendo na resistência!",
+        "Silêncio consistente — desempenho acima da média.",
+        "Mantendo o foco como um verdadeiro atleta da quietude.",
+        "Placar favorável: Happy Boy segue calmo e estratégico.",
+        "Momento de ouro: concentração em alta.",
+        "Controle emocional digno de final de campeonato."
+    ];
 
-  const reset = () => {
-    if (seconds > record) setRecord(seconds);
-    setSeconds(0);
-    setCount((c) => c + 1);
-  };
+    // -----------------------------
+    // FUNÇÕES DE ARMAZENAMENTO
+    // -----------------------------
+    function loadMeta() {
+        try {
+            const meta = JSON.parse(localStorage.getItem(STORAGE_KEY_META) || "{}");
+            record = meta.record || 0;
+            count = meta.count || 0;
+        } catch (e) {
+            console.error("Erro ao carregar meta:", e);
+        }
+    }
 
-  const format = (s) => {
-    const m = Math.floor(s / 60);
-    const ss = s % 60;
-    return `${String(m).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
-  };
+    function saveMeta() {
+        localStorage.setItem(
+            STORAGE_KEY_META,
+            JSON.stringify({ record, count })
+        );
+    }
 
-  return (
-    <div style={{ minHeight: '100vh', background: '#0a0d18', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      <div style={{ width: 1000, maxWidth: '98vw', background: '#11172b', borderRadius: 16, padding: '30px 40px', boxShadow: '0 0 40px rgba(0,0,0,0.5)', color: '#fff' }}>
+    // -----------------------------
+    // ÁUDIO DE VITÓRIA
+    // -----------------------------
+    let victorySound;
 
-        {/* HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30 }}>
-          <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: 1 }}>PLACAR OFICIAL — HAPPY BOY</div>
-          <button onClick={reset} style={{ padding: '10px 18px', borderRadius: 10, fontSize: 18, fontWeight: 700, border: 'none', background: '#ff4444', color: '#fff' }}>Registrar fala</button>
-        </div>
+    function playVictory() {
+        try {
+            victorySound?.play();
+        } catch (e) {
+            console.warn("Som não pôde ser reproduzido.");
+        }
+    }
 
-        {/* PAINEL PRINCIPAL */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 30 }}>
+    // -----------------------------
+    // CRONÔMETRO
+    // -----------------------------
+    let timerInterval;
+    let phraseInterval;
 
-          {/* CONTADOR ATUAL */}
-          <div style={{ background: '#0c1323', padding: '30px 20px', borderRadius: 14, textAlign: 'center' }}>
-            <div style={{ fontSize: 20, opacity: 0.7, marginBottom: 10 }}>Tempo Atual Sem Fala</div>
-            <div style={{ fontSize: 110, fontWeight: 900, lineHeight: '100px', color: '#7cffc4', textShadow: '0 0 18px #0f0' }}>
-              {format(seconds)}
-            </div>
-          </div>
+    onMount(() => {
+        loadMeta();
 
-          {/* QUANTAS VEZES ELE PERTURBOU */}
-          <div style={{ background: '#0c1323', padding: '30px 20px', borderRadius: 14, textAlign: 'center' }}>
-            <div style={{ fontSize: 20, opacity: 0.7, marginBottom: 10 }}>Total de Interrupções</div>
-            <div style={{ fontSize: 110, fontWeight: 900, lineHeight: '100px', color: '#ff7c7c', textShadow: '0 0 18px #f00' }}>
-              {count}
-            </div>
-          </div>
+        // Timer
+        timerInterval = setInterval(() => {
+            seconds += 1;
 
-          {/* RECORDE */}
-          <div style={{ background: '#0c1323', padding: '30px 20px', borderRadius: 14, textAlign: 'center' }}>
-            <div style={{ fontSize: 20, opacity: 0.7, marginBottom: 10 }}>Recorde Absoluto</div>
-            <div style={{ fontSize: 110, fontWeight: 900, lineHeight: '100px', color: '#ffd54a', textShadow: '0 0 18px #fc3' }}>
-              {format(record)}
-            </div>
-          </div>
-        </div>
+            // Se bateu recorde
+            if (seconds > record) {
+                record = seconds;
+                saveMeta();
+                playVictory();
+            }
+        }, 1000);
 
-        {/* FRASE HILÁRIA */}
-        <div style={{ marginTop: 40, background: '#182033', padding: '20px 25px', borderRadius: 12, fontSize: 20, lineHeight: '28px', fontWeight: 500, minHeight: 80 }}>
-          {phrases[phraseIndex]}
-        </div>
+        // Rotação de frases
+        phraseInterval = setInterval(() => {
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+        }, 30000);
 
-      </div>
+        return () => {
+            clearInterval(timerInterval);
+            clearInterval(phraseInterval);
+        };
+    });
+
+    // -----------------------------
+    // FORMATADOR DE TEMPO
+    // -----------------------------
+    function format(sec) {
+        const d = Math.floor(sec / 86400);
+        const h = Math.floor((sec % 86400) / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = sec % 60;
+
+        const pad = (v) => String(v).padStart(2, "0");
+
+        return `${pad(d)}d ${pad(h)}h ${pad(m)}m ${pad(s)}s`;
+    }
+</script>
+
+<!-- ÁUDIO DE VITÓRIA -->
+<audio
+    bind:this={victorySound}
+    src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg">
+</audio>
+
+<!-- LAYOUT SIMPLES -->
+<div style="padding: 20px; font-family: Arial; max-width: 380px;">
+
+    <h2>Happy Boy Monitor</h2>
+
+    <div style="margin-top: 10px; font-size: 20px;">
+        <strong>Tempo atual:</strong><br />
+        {format(seconds)}
     </div>
-  );
-}
+
+    <div style="margin-top: 15px;">
+        <strong>Recorde:</strong><br />
+        {format(record)}
+    </div>
+
+    <div style="margin-top: 15px;">
+        <strong>Acessos:</strong> {count}
+    </div>
+
+    <div style="margin-top: 25px; font-size: 14px; opacity: 0.8;">
+        <em>{phrases[phraseIndex]}</em>
+    </div>
+
+</div>
+
+<style>
+    audio {
+        display: none;
+    }
+</style>

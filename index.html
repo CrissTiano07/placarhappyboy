@@ -1,139 +1,6 @@
 <script>
-    import { onMount } from "svelte";
-
-    // -----------------------------
-    // VARIÁVEIS PRINCIPAIS
-    // -----------------------------
-    let seconds = 0;
-    let record = 0;
-    let count = 0;
-    let phraseIndex = 0;
-
-    // STORAGE KEYS
-    const STORAGE_KEY_META = "happyboy_svelte_meta_v1";
-
-    // FRASES ROTATIVAS
-    const phrases = [
-        "Happy Boy está surpreendendo na resistência!",
-        "Silêncio consistente — desempenho acima da média.",
-        "Mantendo o foco como um verdadeiro atleta da quietude.",
-        "Placar favorável: Happy Boy segue calmo e estratégico.",
-        "Momento de ouro: concentração em alta.",
-        "Controle emocional digno de final de campeonato."
-    ];
-
-    // -----------------------------
-    // FUNÇÕES DE ARMAZENAMENTO
-    // -----------------------------
-    function loadMeta() {
-        try {
-            const meta = JSON.parse(localStorage.getItem(STORAGE_KEY_META) || "{}");
-            record = meta.record || 0;
-            count = meta.count || 0;
-        } catch (e) {
-            console.error("Erro ao carregar meta:", e);
-        }
-    }
-
-    function saveMeta() {
-        localStorage.setItem(
-            STORAGE_KEY_META,
-            JSON.stringify({ record, count })
-        );
-    }
-
-    // -----------------------------
-    // ÁUDIO DE VITÓRIA
-    // -----------------------------
-    let victorySound;
-
-    function playVictory() {
-        try {
-            victorySound?.play();
-        } catch (e) {
-            console.warn("Som não pôde ser reproduzido.");
-        }
-    }
-
-    // -----------------------------
-    // CRONÔMETRO
-    // -----------------------------
-    let timerInterval;
-    let phraseInterval;
-
-    onMount(() => {
-        loadMeta();
-
-        // Timer
-        timerInterval = setInterval(() => {
-            seconds += 1;
-
-            // Se bateu recorde
-            if (seconds > record) {
-                record = seconds;
-                saveMeta();
-                playVictory();
-            }
-        }, 1000);
-
-        // Rotação de frases
-        phraseInterval = setInterval(() => {
-            phraseIndex = (phraseIndex + 1) % phrases.length;
-        }, 30000);
-
-        return () => {
-            clearInterval(timerInterval);
-            clearInterval(phraseInterval);
-        };
-    });
-
-    // -----------------------------
-    // FORMATADOR DE TEMPO
-    // -----------------------------
-    function format(sec) {
-        const d = Math.floor(sec / 86400);
-        const h = Math.floor((sec % 86400) / 3600);
-        const m = Math.floor((sec % 3600) / 60);
-        const s = sec % 60;
-
-        const pad = (v) => String(v).padStart(2, "0");
-
-        return `${pad(d)}d ${pad(h)}h ${pad(m)}m ${pad(s)}s`;
-    }
-</script>
-
-<!-- ÁUDIO DE VITÓRIA -->
-<audio
-    bind:this={victorySound}
-    src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg">
-</audio>
-
-<!-- LAYOUT SIMPLES -->
-<div style="padding: 20px; font-family: Arial; max-width: 380px;">
-
-    <h2>Happy Boy Monitor</h2>
-
-    <div style="margin-top: 10px; font-size: 20px;">
-        <strong>Tempo atual:</strong><br />
-        {format(seconds)}
-    </div>
-
-    <div style="margin-top: 15px;">
-        <strong>Recorde:</strong><br />
-        {format(record)}
-    </div>
-
-    <div style="margin-top: 15px;">
-        <strong>Acessos:</strong> {count}
-    </div>
-
-    <div style="margin-top: 25px; font-size: 14px; opacity: 0.8;">
-        <em>{phrases[phraseIndex]}</em>
-    </div>
-
-</div>
-
-<style>
+    
+    <style>
   :root{
     --bg: #030513;
     --panel: #071028;
@@ -327,5 +194,142 @@
     .badge img { width:44px; height:44px; }
   }
 </style>
+    
+    import { onMount } from "svelte";
+    
+    // -----------------------------
+    // VARIÁVEIS PRINCIPAIS
+    // -----------------------------
+    let seconds = 0;
+    let record = 0;
+    let count = 0;
+    let phraseIndex = 0;
+
+    // STORAGE KEYS
+    const STORAGE_KEY_META = "happyboy_svelte_meta_v1";
+
+    // FRASES ROTATIVAS
+    const phrases = [
+        "Happy Boy está surpreendendo na resistência!",
+        "Silêncio consistente — desempenho acima da média.",
+        "Mantendo o foco como um verdadeiro atleta da quietude.",
+        "Placar favorável: Happy Boy segue calmo e estratégico.",
+        "Momento de ouro: concentração em alta.",
+        "Controle emocional digno de final de campeonato."
+    ];
+
+    // -----------------------------
+    // FUNÇÕES DE ARMAZENAMENTO
+    // -----------------------------
+    function loadMeta() {
+        try {
+            const meta = JSON.parse(localStorage.getItem(STORAGE_KEY_META) || "{}");
+            record = meta.record || 0;
+            count = meta.count || 0;
+        } catch (e) {
+            console.error("Erro ao carregar meta:", e);
+        }
+    }
+
+    function saveMeta() {
+        localStorage.setItem(
+            STORAGE_KEY_META,
+            JSON.stringify({ record, count })
+        );
+    }
+
+    // -----------------------------
+    // ÁUDIO DE VITÓRIA
+    // -----------------------------
+    let victorySound;
+
+    function playVictory() {
+        try {
+            victorySound?.play();
+        } catch (e) {
+            console.warn("Som não pôde ser reproduzido.");
+        }
+    }
+
+    // -----------------------------
+    // CRONÔMETRO
+    // -----------------------------
+    let timerInterval;
+    let phraseInterval;
+
+    onMount(() => {
+        loadMeta();
+
+        // Timer
+        timerInterval = setInterval(() => {
+            seconds += 1;
+
+            // Se bateu recorde
+            if (seconds > record) {
+                record = seconds;
+                saveMeta();
+                playVictory();
+            }
+        }, 1000);
+
+        // Rotação de frases
+        phraseInterval = setInterval(() => {
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+        }, 30000);
+
+        return () => {
+            clearInterval(timerInterval);
+            clearInterval(phraseInterval);
+        };
+    });
+
+    // -----------------------------
+    // FORMATADOR DE TEMPO
+    // -----------------------------
+    function format(sec) {
+        const d = Math.floor(sec / 86400);
+        const h = Math.floor((sec % 86400) / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = sec % 60;
+
+        const pad = (v) => String(v).padStart(2, "0");
+
+        return `${pad(d)}d ${pad(h)}h ${pad(m)}m ${pad(s)}s`;
+    }
+</script>
+
+<!-- ÁUDIO DE VITÓRIA -->
+<audio
+    bind:this={victorySound}
+    src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg">
+</audio>
+
+<!-- LAYOUT SIMPLES -->
+<div style="padding: 20px; font-family: Arial; max-width: 380px;">
+
+    <h2>Happy Boy Monitor</h2>
+
+    <div style="margin-top: 10px; font-size: 20px;">
+        <strong>Tempo atual:</strong><br />
+        {format(seconds)}
+    </div>
+
+    <div style="margin-top: 15px;">
+        <strong>Recorde:</strong><br />
+        {format(record)}
+    </div>
+
+    <div style="margin-top: 15px;">
+        <strong>Acessos:</strong> {count}
+    </div>
+
+    <div style="margin-top: 25px; font-size: 14px; opacity: 0.8;">
+        <em>{phrases[phraseIndex]}</em>
+    </div>
+
+</div>
+
+
+
 
 

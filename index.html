@@ -6,28 +6,22 @@
     <title>NIT-EFETIVO // LOGISTICS V9.9</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:ital,wght@0,300;0,400;0,700;0,900;1,900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            /* MODO DARK */
-            --bg: #050506; --text: #ffffff; --surface: rgba(255, 255, 255, 0.02);
-            --line: rgba(255, 255, 255, 0.07); --accent: #ffffff;
-            --danger: #ff3b30; --success: #34c759; --info: #00b4ff;
-            --input-bg: rgba(255, 255, 255, 0.02);
-            --premium-shadow: 0 20px 60px rgba(0,0,0,0.9);
-            --card-radius: 14px; --btn-radius: 8px;
-        }
-
-        [data-theme="light"] {
-            /* MODO LIGHT: CALIBRAÇÃO ANTI-BRILHO */
-            --bg: #C1C1C6;           /* Camada 0: Fundo (Cinza médio, mais profundo) */
-            --surface: #ffffff;      /* Camada 1: O Card (Cinza seda, zero branco puro) */
-            --input-bg: #C1C1C6;     /* Camada 2: Inputs (Cinza concreto para profundidade) */
-            --text: #1C1C1E;         /* Camada 3: Texto (Contraste equilibrado) */
-            --line: rgba(0, 0, 0, 0.20); 
-            --accent: #1c1c1e;
-            --danger: #d70015; --success: #248a3d; --info: #007aff;
-            --premium-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        }
+    [data-theme="light"] {
+    /* MODO LIGHT: CALIBRAÇÃO PREMIUM */
+    --bg: #F0F2F5;           /* Camada 0: Fundo (Cinza claro, base suave) */
+    --surface: #FFFFFF;      /* Camada 1: O Card/Superfície (Branco puro para destaque, mas com sombra) */
+    --input-bg: #F8F9FA;     /* Camada 2: Inputs/Elementos Interativos (Cinza muito claro, sutilmente diferente do fundo) */
+    --text: #212529;         /* Camada 3: Texto Principal (Preto suave para alto contraste sem ser agressivo) */
+    --text-secondary: #6C757D; /* Texto Secundário (Cinza médio para informações menos proeminentes) */
+    --line: #DEE2E6;         /* Linhas/Bordas (Cinza claro para separação suave) */
+    --accent: #007BFF;       /* Cor de Destaque/Interativa (Azul vibrante, mas profissional) */
+    --danger: #DC3545;       /* Perigo (Vermelho padrão, com boa legibilidade) */
+    --success: #28A745;      /* Sucesso (Verde padrão, com boa legibilidade) */
+    --info: #17A2B8;         /* Informação (Ciano padrão, com boa legibilidade) */
+    --premium-shadow: 0 8px 25px rgba(0,0,0,0.08); /* Sombra mais difusa e elegante */
+    --card-radius: 12px;     /* Raio de borda para cards, ligeiramente menor para modernidade */
+    --btn-radius: 6px;       /* Raio de borda para botões, para consistência */
+}
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; height: 100vh; display: flex; overflow: hidden; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }

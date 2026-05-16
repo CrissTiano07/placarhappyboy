@@ -7,6 +7,17 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:ital,wght@0,300;0,400;0,700;0,900;1,900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     [data-theme="light"] {
+    :root {
+            /* MODO DARK */
+            --bg: #050506; --text: #ffffff; --surface: rgba(255, 255, 255, 0.02);
+            --line: rgba(255, 255, 255, 0.07); --accent: #ffffff;
+            --danger: #ff3b30; --success: #34c759; --info: #00b4ff;
+            --input-bg: rgba(255, 255, 255, 0.02);
+            --premium-shadow: 0 20px 60px rgba(0,0,0,0.9);
+            --card-radius: 14px; --btn-radius: 8px;
+        }
+
+        [data-theme="light"] {
     /* MODO LIGHT: CALIBRAÇÃO PREMIUM */
     --bg: #F0F2F5;           /* Camada 0: Fundo (Cinza claro, base suave) */
     --surface: #FFFFFF;      /* Camada 1: O Card/Superfície (Branco puro para destaque, mas com sombra) */
@@ -22,6 +33,8 @@
     --card-radius: 12px;     /* Raio de borda para cards, ligeiramente menor para modernidade */
     --btn-radius: 6px;       /* Raio de borda para botões, para consistência */
 }
+
+
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; height: 100vh; display: flex; overflow: hidden; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
